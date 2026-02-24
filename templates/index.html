@@ -5,13 +5,17 @@
 </head>
 <body>
     <h1>Kinship AI System</h1>
-    <form method="get" action="/query">
-        <input type="text" name="question" placeholder="Ask a question">
+
+    <!-- Form submits to "/" using POST to match your app.py -->
+    <form method="post" action="/">
+        <input type="text" name="question" placeholder="Ask a question..." required>
         <button type="submit">Ask</button>
     </form>
 
+    <!-- Display answer if available -->
     {% if answer %}
-        <p><strong>Answer:</strong> {{ answer }}</p>
+        <h3>Answer:</h3>
+        <p>{{ answer }}</p>
     {% endif %}
 </body>
 </html>
