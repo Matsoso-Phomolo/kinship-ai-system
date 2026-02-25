@@ -8,14 +8,24 @@ app = Flask(__name__, template_folder="templates")  # Ensure Flask knows where t
 prolog = Prolog()
 prolog.consult("familytree.pl")
 
-
 def extract_name(question):
-    words = question.lower().split()
-    return words[-1].replace("?", "")
+    """Extract the last word of the question and capitalize it to match Prolog facts"""
+    words = question.strip().split()
+    name = words[-1].replace("?", "")
+    return name.capitalize()
 
+def person_exists(name):
+    """Check if the person exists in the Prolog knowledge base"""
+    query = f"parent_of(_, {name})"
+    return bool(list(prolog.query(query)))
 
 def process_question(question):
-    question = question.lower()
+    question_lower = question.lower()
+    person = extract_name(question)
+
+    # Verify the person exists
+    if not person_exists(person):
+        return f"No information found for {person}."
 
     relationships = {
         "father of": ("father_of", "father"),
@@ -30,8 +40,7 @@ def process_question(question):
     }
 
     for phrase, (predicate, label) in relationships.items():
-        if phrase in question:
-            person = extract_name(question).capitalize()
+        if phrase in question_lower:
             query = f"{predicate}(X, {person})"
             result = list(prolog.query(query))
 
@@ -39,12 +48,11 @@ def process_question(question):
                 # Remove duplicates and sort
                 answers = sorted({r["X"].capitalize() for r in result})
                 answer_text = ", ".join(answers)
-                return f"{answer_text} is {person.capitalize()}'s {label}."
+                return f"{answer_text} is {person}'s {label}."
             else:
                 return f"No {label} found for {person}."
 
     return "Sorry, I don't understand the question."
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -55,8 +63,6 @@ def index():
             answer = process_question(question)
     return render_template("index.html", answer=answer)
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use Render's assigned port if available
     app.run(host="0.0.0.0", port=port)
-
