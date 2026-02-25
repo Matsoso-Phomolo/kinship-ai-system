@@ -29,9 +29,19 @@ def process_question(question):
         "ancestor of": ("ancestor_of", "ancestor", "")
     }
 
+    # Extract the person name from the question
+    person = extract_name(question).capitalize()
+
+    # Check if the person exists in the family tree
+    exists_query = list(prolog.query(f"male({person.lower()})")) + \
+                   list(prolog.query(f"female({person.lower()})"))
+
+    if not exists_query:
+        return f"Sorry, I don't know anyone named {person}."
+
+    # Process relationships
     for phrase, (predicate, label, title) in relationships.items():
         if phrase in question:
-            person = extract_name(question).capitalize()
             query = f"{predicate}(X, {person})"
             result = list(prolog.query(query))
 
@@ -40,7 +50,6 @@ def process_question(question):
                 answers = sorted({r["X"].capitalize() for r in result})
 
                 if label in ["father", "mother"]:
-                    # Only take the first (there should be only one)
                     answer_text = f"{title} {answers[0]} is {person}'s {label}."
                 else:
                     answer_text = f"{', '.join(answers)} is {person}'s {label}."
@@ -65,3 +74,4 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use Render's assigned port if available
     app.run(host="0.0.0.0", port=port)
+
