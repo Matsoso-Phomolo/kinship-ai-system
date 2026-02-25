@@ -17,6 +17,9 @@ def extract_name(question):
 def process_question(question):
     question = question.lower()
 
+    # DEBUG TEST
+    print("DEBUG TEST:", list(prolog.query("mother_of(X, simon)")))
+
     relationships = {
         "father of": ("father_of", "father", "Ntate"),
         "mother of": ("mother_of", "mother", "Mme"),
@@ -74,4 +77,5 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use Render's assigned port if available
     app.run(host="0.0.0.0", port=port)
+
 
